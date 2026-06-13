@@ -72,27 +72,17 @@ class TitanBot extends Client {
       await this.login(this.config.bot.token);
       startupLog('Discord login successful');
 
-      this.once('clientReady', async () => {
-        try {
-          if (this.commandsRegistered) return;
-          this.commandsRegistered = true;
+      startupLog('Registering slash commands...');
+      await this.registerCommands();
+      startupLog('Slash commands registration complete');
 
-          startupLog('Registering slash commands...');
-          await this.registerCommands();
-          startupLog('Slash commands registration complete');
+      const handlerSummary =
+        `${this.buttons.size} buttons, ${this.selectMenus.size} menus, ${this.modals.size} modals`;
+      startupLog(`ONLINE ✅ | ${this.commands.size} commands loaded | ${handlerSummary}`);
 
-          const handlerSummary =
-            `${this.buttons.size} buttons, ${this.selectMenus.size} menus, ${this.modals.size} modals`;
-          startupLog(`ONLINE ✅ | ${this.commands.size} commands loaded | ${handlerSummary}`);
-
-          this.setupCronJobs();
-        } catch (err) {
-          logger.error('Command registration failed:', err);
-        }
-      });
-
+      this.setupCronJobs();
     } catch (error) {
-      logger.error('Failed to start bot:', error);
+      logger.error('Failed to start TitanBot:', error);
       process.exit(1);
     }
   }
