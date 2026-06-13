@@ -68,19 +68,30 @@ class TitanBot extends Client {
       await this.loadHandlers();
       startupLog('Handlers loaded');
 
+      // Registering the ready listener before logging in protects cache operations
+      this.once('ready', async () => {
+        try {
+          startupLog(`Ready! Logged in as ${this.user.tag}`);
+          startupLog(`Serving ${this.guilds.cache.size} guild(s)`);
+
+          startupLog('Registering slash commands...');
+          await this.registerCommands();
+          startupLog('Slash commands registration complete');
+
+          const handlerSummary =
+            `${this.buttons.size} buttons, ${this.selectMenus.size} menus, ${this.modals.size} modals`;
+          startupLog(`ONLINE ✅ | ${this.commands.size} commands loaded | ${handlerSummary}`);
+
+          this.setupCronJobs();
+        } catch (readyErr) {
+          logger.error('Error during post-ready initialization:', readyErr);
+        }
+      });
+
       startupLog('Logging into Discord...');
       await this.login(this.config.bot.token);
       startupLog('Discord login successful');
 
-      startupLog('Registering slash commands...');
-      await this.registerCommands();
-      startupLog('Slash commands registration complete');
-
-      const handlerSummary =
-        `${this.buttons.size} buttons, ${this.selectMenus.size} menus, ${this.modals.size} modals`;
-      startupLog(`ONLINE ✅ | ${this.commands.size} commands loaded | ${handlerSummary}`);
-
-      this.setupCronJobs();
     } catch (error) {
       logger.error('Failed to start TitanBot:', error);
       process.exit(1);
